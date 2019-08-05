@@ -12,3 +12,16 @@ pool:
 steps:
 - script: echo $(Build.SourceVersion)
   displayName: 'Print Build.SourceVersion'
+
+- bash: |
+    # git checkout --force creates a merge commit with the format
+    # "Merge commit HeadVersion into Build.SourceVersion"
+    # HeadVersion is what we're interested in since it will match what githubs pull
+    # request API will list in pull_request.head.sha
+    # `awk '{print $2}'` will extract the second word in the commit message
+    sha=$(git log --format=%B -n 1 $(Build.SourceVersion) | awk '{print $2}')
+    echo "##vso[task.setvariable variable=HeadVersion]$sha"
+  displayName: 'set HeadVersion'
+
+- script: echo $(HeadVersion)
+  displayName: 'Print HeadVersion'
